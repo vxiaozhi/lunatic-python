@@ -14,13 +14,12 @@ This is an updated version of lunatic-python that works with Python 2.7-3.x and 
 I tried contacting the original author of Lunatic Python, but got no response.
 
 
-## 编译安装
+## 目录结构说明
 
-### Lua 5.1 编译
+新增如下目录代码：
 
-```
-
-```
+- lua-5.4.6: Lua 5.4.6版本源码
+- python_in_lua: 运行Python的 Lua 扩展模块，并基于 Python3.10 版本运行并验证。
 
 Installing
 ----------
