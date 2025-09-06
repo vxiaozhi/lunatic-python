@@ -1,2 +1,4 @@
 .vscode/
 **/*.dSYM/*
+**/__pycache__/*
+**/*.pyc

@@ -1,6 +1,28 @@
 
+# Lua 5.4.6
+
 This is Lua 5.4.6, released on 02 May 2023.
 
 For installation instructions, license details, and
 further information about Lua, see doc/readme.html.
+
+## 安装
+
+代码下载：
+
+```
+curl -R -O https://www.lua.org/ftp/lua-5.4.6.tar.gz
+tar zxf lua-5.4.6.tar.gz
+cd lua-5.4.6
+```
+
+编译：
+
+```
+# macos 编译
+make macosx
+
+# 安装（需要管理员权限）
+sudo make install
+```
 

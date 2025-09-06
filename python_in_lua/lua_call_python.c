@@ -157,7 +157,7 @@ static void init_python() {
 }
 
 // 模块入口函数
-int luaopen_lua_python(lua_State *L) {
+int luaopen_lua_call_python(lua_State *L) {
     init_python();
     luaL_newlib(L, lua_python_lib);
     return 1;

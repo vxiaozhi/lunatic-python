@@ -1,4 +1,4 @@
-local lua_python = require "lua_python"
+local lua_python = require "lua_call_python"
 
 -- 测试调用 Python 函数
 local greet_result = lua_python.call_python_function("example", "greet")
