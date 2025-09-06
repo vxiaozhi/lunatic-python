@@ -13,6 +13,15 @@ Sadly, Lunatic Python is very much outdated and won't work with either a current
 This is an updated version of lunatic-python that works with Python 2.7-3.x and Lua 5.1-5.3.
 I tried contacting the original author of Lunatic Python, but got no response.
 
+
+## 编译安装
+
+### Lua 5.1 编译
+
+```
+
+```
+
 Installing
 ----------
 
