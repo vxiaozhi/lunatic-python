@@ -12,19 +12,17 @@ assert("bar" == python.eval "u'bar'")
 
 pyglob = python.globals()
 d = {}
-pyglob.d = d
+
+-- pyglob.d = d
+
 -- This crashes if you've compiled the python.so to include another
 -- Lua interpreter, i.e., with -llua.
-python.execute "d['key'] = 'value'"
-assert(d.key == 'value', d.key)
 
-python.execute "d.key = 'newvalue'"
-assert(d.key == 'newvalue', d.key)
+-- python.execute "d['key'] = 'value'"
+-- assert(d.key == 'value', d.key)
 
--- Test operators on py containers
-l = python.eval "['hello']"
-assert(tostring(l * 3) == "['hello', 'hello', 'hello']")
-assert(tostring(l + python.eval "['bye']") == "['hello', 'bye']")
+-- python.execute "d.key = 'newvalue'"
+-- assert(d.key == 'newvalue', d.key)
 
 -- Test that Python C module can access Py Runtime symbols
 ctypes = python.import 'ctypes'

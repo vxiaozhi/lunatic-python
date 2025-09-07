@@ -37,19 +37,6 @@
 static int py_asfunc_call(lua_State *);
 static int py_eval(lua_State *);
 
-
-static PyObject *LuaObject_New(lua_State *L, int n)
-{
-    //LuaObject *obj = PyObject_New(LuaObject, &LuaObject_Type);
-    LuaObject *obj = NULL;
-    if (obj)
-    {
-        lua_pushvalue(L, n);
-        obj->ref = luaL_ref(L, LUA_REGISTRYINDEX);
-        obj->refiter = 0;
-    }
-    return (PyObject*) obj;
-}
 static PyObject *LuaConvert(lua_State *L, int n)
 {
     
@@ -102,7 +89,8 @@ static PyObject *LuaConvert(lua_State *L, int n)
         }
 
         default:
-            ret = LuaObject_New(L, n);
+            luaL_error(L, "cannot convert Lua type '%s' to Python object",  lua_typename(L, lua_type(L, n)));
+            ret = NULL;
             break;
     }
 
@@ -111,6 +99,7 @@ static PyObject *LuaConvert(lua_State *L, int n)
 
 static int py_convert_custom(lua_State *L, PyObject *o, int asindx)
 {
+    // lua_newuserdata 分配一块指定大小的内存块， 把内存块地址作为一个完全用户数据压栈， 并返回这个地址。 
     py_object *obj = (py_object*) lua_newuserdata(L, sizeof(py_object));
     if (!obj)
         luaL_error(L, "failed to allocate userdata object");
@@ -118,7 +107,11 @@ static int py_convert_custom(lua_State *L, PyObject *o, int asindx)
     Py_INCREF(o);
     obj->o = o;
     obj->asindx = asindx;
+
+    // 将注册表中 POBJECT("POBJECT") 对应的元表压栈。 如果没有对应的元表，则将 nil 压栈并返回假。
     luaL_getmetatable(L, POBJECT);
+
+    // 把一张表弹出栈，并将其设为给定索引处的值的元表。
     lua_setmetatable(L, -2);
 
     return 1;
@@ -160,10 +153,7 @@ int py_convert(lua_State *L, PyObject *o)
     } else if (PyFloat_Check(o)) {
         lua_pushnumber(L, (lua_Number)PyFloat_AsDouble(o));
         ret = 1;
-    } /*else if (LuaObject_Check(o)) {
-        lua_rawgeti(L, LUA_REGISTRYINDEX, ((LuaObject*)o)->ref);
-        ret = 1;
-    }*/ else {
+    } else {
         int asindx = PyDict_Check(o) || PyList_Check(o) || PyTuple_Check(o);
         ret = py_convert_custom(L, o, asindx);
     }
@@ -486,48 +476,15 @@ static int py_object_tostring(lua_State *L)
     return 1;
 }
 
-static int py_operator_lambda(lua_State *L,  const char *op)
-{
-  static char script_buff[] = "lambda a, b: a    b";
-  static size_t len = sizeof(script_buff) / sizeof(script_buff[0]);
-  snprintf(script_buff, len, "lambda a, b: a %s b", op);
-
-  lua_pushcfunction(L, py_eval);
-  lua_pushlstring(L, script_buff, len);
-  lua_call(L, 1, 1);
-  return luaL_ref(L, LUA_REGISTRYINDEX);
-}
-
-#define make_pyoperator(opname, opliteral) \
-  static int py_object_ ## opname(lua_State *L) \
-  { \
-    static int op_ref = LUA_REFNIL; \
-    if (op_ref == LUA_REFNIL) op_ref = py_operator_lambda(L, opliteral); \
-    \
-    lua_rawgeti(L, LUA_REGISTRYINDEX, op_ref); \
-    lua_insert(L, 1); \
-    return py_object_call(L); \
-  } \
-  struct opname ## __LINE__ // force semi
-
-make_pyoperator(_pow, "**");
-make_pyoperator(_mul, "*");
-make_pyoperator(_div, "/");
-make_pyoperator(_add, "+");
-make_pyoperator(_sub, "-");
-
 static const luaL_Reg py_object_mt[] =
 {
     {"__call",  py_object_call},
     {"__index", py_object_index},
     {"__newindex",  py_object_newindex},
+    //如果要让一个对象（表或用户数据）在收集过程中进入终结流程， 你必须 __gc 标记 它需要触发终结器。  
+    //当一个被标记的对象成为了垃圾后，Lua 会将其置入一个链表。 在收集完成后，Lua 将遍历这个链表,检查每个链表中的对象的 __gc 元方法：如果是一个函数，那么就以对象为唯一参数调用它； 否则直接忽略它。
     {"__gc",    py_object_gc},
     {"__tostring",  py_object_tostring},
-    {"__pow",   py_object__pow},
-    {"__mul",   py_object__mul},
-    {"__div",   py_object__div},
-    {"__add",   py_object__add},
-    {"__sub",   py_object__sub},
     {NULL, NULL}
 };
 
